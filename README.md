@@ -43,9 +43,3 @@ Siapool needs a lot of information from the sia network to be able to construct 
 This left the option of implementing siapool as a siad module or vice versa, namely importing siad and launching the modules we require ourselves. The second option has been chosen to limit the impact on the sia project itself and to leave the pool landscape for sia mining open.
 
 An additional benefit of embedding the necessary siad functionality is that there is only a single binary, there is no need to run a separate siad and to configure the pool and siad to work together.
-
-## Support development
-
-If you really want to, you can support the siapool development:
-
-SIA: 1e80b18e7cdd92c3a03f307c5f453bb5a26784dfce054063b4976c8784b3a98f55ecf5f59627
