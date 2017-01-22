@@ -5,7 +5,7 @@ import (
 	siasync "github.com/NebulousLabs/Sia/sync"
 	"github.com/NebulousLabs/Sia/types"
 	"github.com/NebulousLabs/demotemutex"
-	"github.com/robvanmieghem/siapool/siad"
+	"github.com/siapool/p2pool/siad"
 )
 
 const (

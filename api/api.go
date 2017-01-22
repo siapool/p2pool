@@ -8,7 +8,7 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/NebulousLabs/Sia/encoding"
-	"github.com/robvanmieghem/siapool/sharechain"
+	"github.com/siapool/p2pool/sharechain"
 )
 
 //PoolAPI implements the http handlers

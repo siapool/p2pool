@@ -1,6 +1,8 @@
 package siad
 
 import (
+	"path/filepath"
+
 	"github.com/NebulousLabs/Sia/api"
 	"github.com/NebulousLabs/Sia/build"
 	"github.com/NebulousLabs/Sia/modules"
@@ -33,19 +35,19 @@ func (s *Siad) Start() (err error) {
 	}()
 
 	log.Infoln("Loading siad/gateway...")
-	g, err := gateway.New(s.RPCAddr, true, modules.GatewayDir)
+	g, err := gateway.New(s.RPCAddr, true, filepath.Join("p2pooldata/siad", modules.GatewayDir))
 	if err != nil {
 		return
 	}
 
 	log.Infoln("Loading siad/consensus...")
-	cs, err := consensus.New(g, true, modules.ConsensusDir)
+	cs, err := consensus.New(g, true, filepath.Join("p2pooldata/siad", modules.ConsensusDir))
 	if err != nil {
 		return
 	}
 
 	log.Infoln("Loading siad/transaction pool...")
-	tpool, err := transactionpool.New(cs, g, modules.TransactionPoolDir)
+	tpool, err := transactionpool.New(cs, g, filepath.Join("p2pooldata/siad", modules.TransactionPoolDir))
 	if err != nil {
 		return err
 	}

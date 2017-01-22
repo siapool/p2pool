@@ -22,4 +22,5 @@ _testmain.go
 *.exe
 *.test
 *.prof
-siapool
+p2pool
+p2pooldata

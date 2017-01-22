@@ -9,9 +9,9 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/codegangsta/cli"
 	"github.com/gorilla/mux"
-	"github.com/robvanmieghem/siapool/api"
-	"github.com/robvanmieghem/siapool/sharechain"
-	"github.com/robvanmieghem/siapool/siad"
+	"github.com/siapool/p2pool/api"
+	"github.com/siapool/p2pool/sharechain"
+	"github.com/siapool/p2pool/siad"
 )
 
 func main() {
@@ -83,7 +83,7 @@ func main() {
 		}
 
 		log.Infoln("Loading sharechain...")
-		sc, err := sharechain.New(dc, "p2pool")
+		sc, err := sharechain.New(dc, "p2pooldata/sharechain")
 		if err != nil {
 			log.Fatal("Error initializing sharechain: ", err)
 		}
