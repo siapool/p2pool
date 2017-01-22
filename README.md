@@ -7,7 +7,7 @@
 
 Early development phase, completely useless at the moment.
 
-The intention is to make a p2pool for SIA. In a first phase the pool interface and blockgeneration will be created. This will result in a fully functional but centralized pplns pool. The sharechain is currently just a list of accepted shared and the p2peer protocol will be added in phase 2.
+The intention is to make a p2pool for SIA. In a first phase the pool interface and blockgeneration will be created. This will result in a fully functional but centralized pplns pool. The sharechain is currently just a list of accepted shares and the p2peer protocol will be added in phase 2.
 
 ## Connect your miner
 
@@ -15,10 +15,8 @@ Direct your miner to the pool using the following host: `<poolhost>:<poolport>/<
 
 Example using gominer:
 ```
-gominer -H "siapool.tech:9985/1e80b18e7cdd92c3a03f307c5f453bb5a26784dfce054063b4976c8784b3a98f55ecf5f59627"
+gominer -url siapool.tech:9985 -user 1e80b18e7cdd92c3a03f307c5f453bb5a26784dfce054063b4976c8784b3a98f55ecf5f59627
 ```
-
-Passing this host will work on most other miners as well but siapool rejects requests for the same payout address if the previous request happened less then 5 seconds before, unless the miner submitted a share off course.
 
 ## Share difficulty
 
