@@ -11,12 +11,15 @@ The intention is to make a p2pool for SIA. In a first phase the pool interface a
 
 ## Connect your miner
 
-Direct your miner to the pool using the following host: `<poolhost>:<poolport>/<yourpayoutaddress>`
+Only stratum as defined on https://siamining.com/stratum is supported, no `getHeader` implementations.
+Direct your miner to the pool using the following host: `<poolhost>:<poolport>`
 
 Example using gominer:
 ```
-gominer -url siapool.tech:9985 -user 1e80b18e7cdd92c3a03f307c5f453bb5a26784dfce054063b4976c8784b3a98f55ecf5f59627
+gominer -url tcp+stratum://siapool.tech:3333 -user 1e80b18e7cdd92c3a03f307c5f453bb5a26784dfce054063b4976c8784b3a98f55ecf5f59627
 ```
+
+The benefit of using stratum is that the server does not need to store all generated headers since the clients generate the randomness. This makes the server much cleaner, more lightweight and enables it to support a lot more miners. The major drawback is that official Sia gpu miner is not compatible.
 
 ## Share difficulty
 
@@ -41,3 +44,9 @@ Siapool needs a lot of information from the sia network to be able to construct 
 This left the option of implementing siapool as a siad module or vice versa, namely importing siad and launching the modules we require ourselves. The second option has been chosen to limit the impact on the sia project itself and to leave the pool landscape for sia mining open.
 
 An additional benefit of embedding the necessary siad functionality is that there is only a single binary, there is no need to run a separate siad and to configure the pool and siad to work together.
+
+## How to
+
+* **How to check the state of the embedded siad (synchronization, peers, ...)?**
+
+  The embedded siad's api is exposed on `localhost:9980`, the same as a normal siad. This means you can use the normal siac commandline utility to talk to it. Only the consensus, transactionpool and gateway modules are loaded so wallet operations will not work.
