@@ -90,8 +90,7 @@ func main() {
 		poolapi := api.PoolAPI{Fee: poolFee, ShareChain: sc}
 		r := mux.NewRouter()
 		r.Path("/fee").Methods("GET").Handler(http.HandlerFunc(poolapi.FeeHandler))
-		r.Path("/{payoutaddress}/miner/header").Methods("GET").Handler(http.HandlerFunc(poolapi.GetWorkHandler))
-		r.Path("/{payoutaddress}/miner/header").Methods("POST").Handler(http.HandlerFunc(poolapi.SubmitHeaderHandler))
+		r.Path("/version").Methods("GET").Handler(http.HandlerFunc(poolapi.VersionHandler))
 
 		// stop the server if a kill signal is caught
 		sigChan := make(chan os.Signal, 1)

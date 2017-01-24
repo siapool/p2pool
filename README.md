@@ -39,7 +39,7 @@ In the event that a share qualifies as a block, this generation transaction is e
 
 ## Architectural concept
 
-Siapool needs a lot of information from the sia network to be able to construct the blocks for which it hands out headers to miners and needs to feed complete blocks to the sia network. Siad does not expose this information through it's api and siapool needs to react fast on new blocks. It's a lot more comfortable if siapool accesses the internal datastructures of siad directly to be able to serve it's miners up to date block headers and to submit custom made blocks to the sia network.
+Siapool needs a lot of information from the sia network to be able to construct the blocks for which it hands out headers to miners and needs to feed complete blocks to the sia network. Siad does not expose this information through it's api and siapool needs to react fast on new blocks. It's a lot more comfortable if siapool accesses the internal datastructures of siad directly to be able to serve it's miners up to date jobs and to submit custom made blocks to the sia network.
 
 This left the option of implementing siapool as a siad module or vice versa, namely importing siad and launching the modules we require ourselves. The second option has been chosen to limit the impact on the sia project itself and to leave the pool landscape for sia mining open.
 
