@@ -4,8 +4,10 @@ package stratum
 
 import (
 	"bufio"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"math/rand"
 	"net"
 	"sync"
 	"time"
@@ -31,7 +33,8 @@ type NotificationHandler func(args []interface{})
 
 // ClientConnection maintains a connection to a stratum client and (de)serializes requests/reponses/notifications
 type ClientConnection struct {
-	socket net.Conn
+	socketMutex sync.Mutex // protects following
+	socket      net.Conn
 
 	seqmutex sync.Mutex // protects following
 	seq      uint64
@@ -41,6 +44,15 @@ type ClientConnection struct {
 
 	ErrorCallback        ErrorCallback
 	notificationHandlers map[string]NotificationHandler
+
+	extranonce1  []byte
+	MinerVersion string
+}
+
+//NewClientConnection creates a new ClientConnection given a socket
+func (server *Server) NewClientConnection(socket net.Conn) (c *ClientConnection) {
+	extranonce1 := server.generateExtraNonce1()
+	return &ClientConnection{socket: socket, extranonce1: extranonce1}
 }
 
 // Server Listens on a connection for incoming connections
@@ -63,6 +75,28 @@ type Server struct {
 func NewServer(laddr string) (server *Server) {
 	server = &Server{laddr: laddr, maxConnections: 1000}
 	return
+}
+
+func generateRandomBytes(length int) ([]byte, error) {
+	b := make([]byte, length)
+	_, err := rand.Read(b)
+	if err != nil {
+		return b, err
+	}
+	return b, nil
+}
+
+func (server *Server) generateExtraNonce1() (extraNonce1 []byte) {
+retry:
+	for {
+		extraNonce1, _ = generateRandomBytes(4)
+		for _, c := range server.connections {
+			if hex.EncodeToString(extraNonce1) == hex.EncodeToString(c.extranonce1) {
+				continue retry
+			}
+		}
+		return
+	}
 }
 
 //Accept creates  connections on the listener and serves requests for each incoming connection.
@@ -89,15 +123,17 @@ func (server *Server) Accept() (err error) {
 			if err != nil {
 				return
 			}
-			c := &ClientConnection{socket: conn}
 			server.clientconnectionmutex.Lock()
 			defer server.clientconnectionmutex.Unlock()
+			c := server.NewClientConnection(conn)
 			if len(server.connections) >= server.maxConnections {
 				log.Errorln("Maximum number of client connections reached (", server.maxConnections, "), dropping connection request")
 				c.Close()
 			}
+
 			server.connections = append(server.connections, c)
 			go c.Listen()
+			//TODO: clean up closed client connections
 			return
 		}()
 		if err != nil {
@@ -159,7 +195,12 @@ func (c *ClientConnection) dispatch(r message) {
 	if found {
 		cb <- result
 	} else {
-		log.Debugln("json-rpc method called on stratum server:", r.Method)
+		switch r.Method {
+		case "mining.subscribe":
+			c.MiningSubscribeHandler(r)
+		default:
+			log.Debugln("unknown json-rpc method called on stratum server:", r.Method, "-", r)
+		}
 	}
 }
 
@@ -227,7 +268,11 @@ func (c *ClientConnection) Call(serviceMethod string, args []interface{}) (reply
 	defer c.cancelRequest(r.ID)
 
 	rawmsg = append(rawmsg, []byte("\n")...)
-	_, err = c.socket.Write(rawmsg)
+	func() {
+		c.socketMutex.Lock()
+		defer c.socketMutex.Unlock()
+		_, err = c.socket.Write(rawmsg)
+	}()
 	if err != nil {
 		return
 	}
@@ -243,5 +288,24 @@ func (c *ClientConnection) Call(serviceMethod string, args []interface{}) (reply
 		return
 	}
 	err, _ = reply.(error)
+	return
+}
+
+func (c *ClientConnection) Reply(ID uint64, result []interface{}, errorResult []interface{}) (err error) {
+	r := message{ID: ID, Result: result, Error: errorResult}
+
+	rawmsg, err := json.Marshal(r)
+	if err != nil {
+		return
+	}
+	rawmsg = append(rawmsg, []byte("\n")...)
+	func() {
+		c.socketMutex.Lock()
+		defer c.socketMutex.Unlock()
+		_, err = c.socket.Write(rawmsg)
+	}()
+	if err != nil {
+		return
+	}
 	return
 }
