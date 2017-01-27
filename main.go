@@ -12,6 +12,7 @@ import (
 	"github.com/siapool/p2pool/api"
 	"github.com/siapool/p2pool/sharechain"
 	"github.com/siapool/p2pool/siad"
+	"github.com/siapool/p2pool/stratum"
 )
 
 func main() {
@@ -23,7 +24,7 @@ func main() {
 	log.SetFormatter(&log.TextFormatter{FullTimestamp: true})
 
 	var debugLogging bool
-	var bindAddress, apiAddr, rpcAddr string
+	var bindAddress, apiAddr, rpcAddr, stratumAddress string
 	var poolFee int
 
 	app.Flags = []cli.Flag{
@@ -34,9 +35,15 @@ func main() {
 		},
 		cli.StringFlag{
 			Name:        "bind, b",
-			Usage:       "Pool bind address",
+			Usage:       "Pool public api bind address",
 			Value:       ":9985",
 			Destination: &bindAddress,
+		},
+		cli.StringFlag{
+			Name:        "stratumaddress, s",
+			Usage:       "Stratum bind address",
+			Value:       ":3333",
+			Destination: &stratumAddress,
 		},
 		cli.IntFlag{
 			Name:        "fee, f",
@@ -92,16 +99,25 @@ func main() {
 		r.Path("/fee").Methods("GET").Handler(http.HandlerFunc(poolapi.FeeHandler))
 		r.Path("/version").Methods("GET").Handler(http.HandlerFunc(poolapi.VersionHandler))
 
+		stratumsrv := stratum.NewServer(stratumAddress)
+
 		// stop the server if a kill signal is caught
 		sigChan := make(chan os.Signal, 1)
 		signal.Notify(sigChan, os.Interrupt, os.Kill)
 		go func() {
 			<-sigChan
 			log.Infoln("\rCaught stop signal, quitting...")
+			stratumsrv.Close()
 			dc.Close()
 			l.Close()
 		}()
-		log.Infoln("Listening for miner requests")
+
+		go func() {
+			err = stratumsrv.Accept()
+			log.Errorln("ERROR accepting connections:", err)
+		}()
+
+		log.Infoln("Opening public api on", bindAddress)
 		srv := &http.Server{
 			Handler: r,
 		}
