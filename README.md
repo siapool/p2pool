@@ -23,7 +23,7 @@ The benefit of using stratum is that the server does not need to store all gener
 
 ## Share difficulty
 
-The pool has a fixed difficulty for a 1Gh/s miner to find two shares/day on average. The length of the sharechain is 8640 * 4 (= 4 days of shares if the all miners combined would find a share every 10 seconds).
+The pool has a starting difficulty for a 1Gh/s miner to find two shares/day on average. Target pool wide sharetime is 30 seconds and the length of the sharechain is 2 * 1440 * 4 (= 4 days). The difficulty of the pool is adjusted every 100 shares and calculated over the entire sharechain.
 
 ## Payout logic
 
@@ -36,6 +36,7 @@ A subsidy of 0.5% is sent to the miner that solved the block in order to discour
 A node can choose to keep a fee for operating the node.
 
 In the event that a share qualifies as a block, this generation transaction is exposed to the Sia network and takes effect, transferring each miner its payout.
+
 
 ## Architectural concept
 

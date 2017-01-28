@@ -9,12 +9,12 @@ import (
 )
 
 const (
-	//ShareChainLength is the number of shares the chain can hold, given an average share every 10 seconds, it holds 4 days worth of shares
-	ShareChainLength = 8640 * 4
+	//ShareChainLength is the number of shares the chain can hold, given a share twice per minute, it holds 4 days worth of shares
+	ShareChainLength = 2 * 1440 * 4
 	//ShareTime is the target time between two shares (like block time in a normal blockchain)
 	ShareTime = 30
-	//ShareDifficulty is the required difficiculty for a share to be accepted, it is currently fixed for a 1Gh/s miner to find 2 shares per day
-	ShareDifficulty = 1 * 1000 * 1000 * 1000 * 3600 * 12
+	//StartDifficulty is the difficulty for a share to be accepted when starting the p2pool, it is currently set for a 1Gh/s miner to find 2 shares per day
+	StartDifficulty = 1 * 1000 * 1000 * 1000 * 3600 * 24 / 2
 )
 
 //ShareChain holds the previous shares of the pool
