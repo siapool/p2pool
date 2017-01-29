@@ -19,11 +19,11 @@ Example using gominer:
 gominer -url tcp+stratum://siapool.tech:3333 -user 1e80b18e7cdd92c3a03f307c5f453bb5a26784dfce054063b4976c8784b3a98f55ecf5f59627
 ```
 
-The benefit of using stratum is that the server does not need to store all generated headers since the clients generate the randomness. This makes the server much cleaner, more lightweight and enables it to support a lot more miners. The major drawback is that official Sia gpu miner is not compatible.
+The benefit of using stratum is that the server does not need to store all generated headers since the clients generate part of the randomness. This makes the server much cleaner, more lightweight and enables it to support a lot more miners. The major drawback is that the official Sia gpu miner is not compatible.
 
 ## Share difficulty
 
-The pool has a starting difficulty for a 1Gh/s miner to find two shares/day on average. Target pool wide sharetime is 30 seconds and the length of the sharechain is 2 * 1440 * 4 (= 4 days). The difficulty of the pool is adjusted every 100 shares and calculated over the entire sharechain.
+The pool has a starting difficulty for a 1Gh/s miner to find two shares/day on average. Target pool wide sharetime is 30 seconds and the length of the sharechain is 2 * 1440 * 4 (= 4 days). The difficulty of the pool is adjusted every 10 shares and calculated over the entire sharechain.
 
 ## Payout logic
 
