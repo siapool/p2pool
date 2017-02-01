@@ -7,12 +7,16 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"math/big"
 	"math/rand"
 	"net"
 	"sync"
 	"time"
 
+	"github.com/NebulousLabs/Sia/types"
 	log "github.com/Sirupsen/logrus"
+
+	"github.com/siapool/p2pool/sharechain"
 )
 
 // message is the structure for both requests, responses and notifications
@@ -33,6 +37,8 @@ type NotificationHandler func(args []interface{})
 
 // ClientConnection maintains a connection to a stratum client and (de)serializes requests/reponses/notifications
 type ClientConnection struct {
+	server *Server
+
 	socketMutex sync.Mutex // protects following
 	socket      net.Conn
 
@@ -52,11 +58,14 @@ type ClientConnection struct {
 //NewClientConnection creates a new ClientConnection given a socket
 func (server *Server) NewClientConnection(socket net.Conn) (c *ClientConnection) {
 	extranonce1 := server.generateExtraNonce1()
-	return &ClientConnection{socket: socket, extranonce1: extranonce1}
+	return &ClientConnection{socket: socket, extranonce1: extranonce1, server: server}
 }
 
 // Server Listens on a connection for incoming connections
 type Server struct {
+	shareChain *sharechain.ShareChain
+	difficulty float64
+
 	laddr          string
 	maxConnections int
 
@@ -72,8 +81,20 @@ type Server struct {
 
 //NewServer creates a stratum server for listening on the local network address laddr.
 // During the Accept() call, a listening socket is created ( https://golang.org/pkg/net/#Listen ) using "tcp" as network and laddr as specified.
-func NewServer(laddr string) (server *Server) {
-	server = &Server{laddr: laddr, maxConnections: 1000}
+func NewServer(laddr string, shareChain *sharechain.ShareChain) (server *Server) {
+	server = &Server{laddr: laddr, shareChain: shareChain, maxConnections: 1000}
+	server.difficulty = targetToDifficulty(shareChain.Target)
+	return
+}
+
+func targetToDifficulty(target types.Target) (difficulty float64) {
+	//target = targetone/diff
+	diffOneString := "0x00000000ffff0000000000000000000000000000000000000000000000000000"
+	targetOneAsBigInt := &big.Int{}
+	targetOneAsBigInt.SetString(diffOneString, 0)
+	targetOneAsBigRat := &big.Rat{}
+	targetOneAsBigRat.SetInt(targetOneAsBigInt)
+	difficulty, _ = targetOneAsBigRat.Quo(targetOneAsBigRat, target.Rat()).Float64()
 	return
 }
 
@@ -293,6 +314,26 @@ func (c *ClientConnection) Call(serviceMethod string, args []interface{}) (reply
 
 func (c *ClientConnection) Reply(ID uint64, result []interface{}, errorResult []interface{}) (err error) {
 	r := message{ID: ID, Result: result, Error: errorResult}
+
+	rawmsg, err := json.Marshal(r)
+	if err != nil {
+		return
+	}
+	rawmsg = append(rawmsg, []byte("\n")...)
+	func() {
+		c.socketMutex.Lock()
+		defer c.socketMutex.Unlock()
+		_, err = c.socket.Write(rawmsg)
+	}()
+	if err != nil {
+		return
+	}
+	return
+}
+
+//Notify sends a notification to the client
+func (c *ClientConnection) Notify(serviceMethod string, args []interface{}) (err error) {
+	r := message{Method: serviceMethod, Params: args}
 
 	rawmsg, err := json.Marshal(r)
 	if err != nil {

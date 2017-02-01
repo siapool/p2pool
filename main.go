@@ -99,7 +99,7 @@ func main() {
 		r.Path("/fee").Methods("GET").Handler(http.HandlerFunc(poolapi.FeeHandler))
 		r.Path("/version").Methods("GET").Handler(http.HandlerFunc(poolapi.VersionHandler))
 
-		stratumsrv := stratum.NewServer(stratumAddress)
+		stratumsrv := stratum.NewServer(stratumAddress, sc)
 
 		// stop the server if a kill signal is caught
 		sigChan := make(chan os.Signal, 1)

@@ -20,5 +20,16 @@ func (c *ClientConnection) MiningSubscribeHandler(m message) {
 		nil)
 	if err != nil {
 		c.Close()
+		return
 	}
+	c.SendDifficulty()
+}
+
+//SendDifficulty sends the current difficulty to the miner
+func (c *ClientConnection) SendDifficulty() {
+	err := c.Notify("mining.set_difficulty", []interface{}{c.server.difficulty})
+	if err != nil {
+		c.Close()
+	}
+	return
 }

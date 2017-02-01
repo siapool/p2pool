@@ -23,7 +23,7 @@ The benefit of using stratum is that the server does not need to store all gener
 
 ## Share difficulty
 
-The pool has a starting difficulty for a 1Gh/s miner to find two shares/day on average. Target pool wide sharetime is 30 seconds and the length of the sharechain is 2 * 1440 * 4 (= 4 days). The difficulty of the pool is adjusted every 10 shares and calculated over the entire sharechain.
+The pool has a starting difficulty for a 1Gh/s miner to find two shares/day on average. Target pool wide sharetime is 30 seconds and the length of the sharechain is 2 * 1440 * 4 (= 4 days). The difficulty of the pool is adjusted every 10 shares and calculated over the entire sharechain. The payout takes difficulty in to account so poolhopping based on difficulty has no point. The variable difficulty is to encourage miners to select a pool that matches their own mining power.
 
 ## Payout logic
 
@@ -31,7 +31,8 @@ Each share contains a generation transaction that pays to the previous n shares,
 
 The block reward and the transaction fees are combined and apportioned according to these rules:
 
-A subsidy of 0.5% is sent to the miner that solved the block in order to discourage not sharing solutions that qualify as a block. (A miner with the aim to harm others could withhold the block, thereby preventing anybody from getting paid. He can NOT redirect the payout to himself.) The remaining 99.5% is distributed evenly to miners based on work done recently.
+A subsidy of 0.5% is sent to the miner that solved the block in order to discourage not sharing solutions that qualify as a block. (A miner with the aim to harm others could withhold the block, thereby preventing anybody from getting paid. He can NOT redirect the payout to himself.) The remaining 99.5% is distributed evenly to miners based on work done recently. The pool's difficulty
+is taken in to account as well so it has no point to poolhop based on the pool's current difficulty.
 
 A node can choose to keep a fee for operating the node.
 

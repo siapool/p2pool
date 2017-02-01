@@ -1,6 +1,8 @@
 package sharechain
 
 import (
+	"math/big"
+
 	"github.com/NebulousLabs/Sia/persist"
 	siasync "github.com/NebulousLabs/Sia/sync"
 	"github.com/NebulousLabs/Sia/types"
@@ -13,9 +15,12 @@ const (
 	ShareChainLength = 2 * 1440 * 4
 	//ShareTime is the target time between two shares (like block time in a normal blockchain)
 	ShareTime = 30
-	//StartDifficulty is the difficulty for a share to be accepted when starting the p2pool, it is currently set for a 1Gh/s miner to find 2 shares per day
-	StartDifficulty = 1 * 1000 * 1000 * 1000 * 3600 * 24 / 2
+	//StartHashesPerShare is currently set for a 1Gh/s miner to find 2 shares per day
+	StartHashesPerShare = 1 * 1000 * 1000 * 1000 * 3600 * 24 / 2
 )
+
+//StartTarget is the target for a share to be accepted when starting the p2pool,
+var StartTarget = types.RootDepth.MulDifficulty(big.NewRat(StartHashesPerShare, 1))
 
 //ShareChain holds the previous shares of the pool
 type ShareChain struct {
@@ -32,6 +37,8 @@ type ShareChain struct {
 	// tg signals the Miner's goroutines to shut down and blocks until all
 	// goroutines have exited before returning from Close().
 	tg siasync.ThreadGroup
+
+	Target types.Target
 }
 
 // New returns a new ShareChain.
@@ -42,6 +49,8 @@ func New(siadaemon *siad.Siad, persistDir string) (sc *ShareChain, err error) {
 		Siad: siadaemon,
 
 		persistDir: persistDir,
+
+		Target: StartTarget,
 	}
 
 	// Initialize the persistence structures.
