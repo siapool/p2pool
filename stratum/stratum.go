@@ -53,6 +53,7 @@ type ClientConnection struct {
 
 	extranonce1  []byte
 	MinerVersion string
+	User         string
 }
 
 //NewClientConnection creates a new ClientConnection given a socket
@@ -219,6 +220,8 @@ func (c *ClientConnection) dispatch(r message) {
 		switch r.Method {
 		case "mining.subscribe":
 			c.MiningSubscribeHandler(r)
+		case "mining.authorize":
+			c.MiningAuthorizeHandler(r)
 		default:
 			log.Debugln("unknown json-rpc method called on stratum server:", r.Method, "-", r)
 		}
@@ -312,7 +315,7 @@ func (c *ClientConnection) Call(serviceMethod string, args []interface{}) (reply
 	return
 }
 
-func (c *ClientConnection) Reply(ID uint64, result []interface{}, errorResult []interface{}) (err error) {
+func (c *ClientConnection) Reply(ID uint64, result interface{}, errorResult []interface{}) (err error) {
 	r := message{ID: ID, Result: result, Error: errorResult}
 
 	rawmsg, err := json.Marshal(r)

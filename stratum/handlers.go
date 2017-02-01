@@ -22,7 +22,33 @@ func (c *ClientConnection) MiningSubscribeHandler(m message) {
 		c.Close()
 		return
 	}
+}
+
+//MiningAuthorizeHandler handles the mining.authorize request
+func (c *ClientConnection) MiningAuthorizeHandler(m message) {
+	if m.Params == nil || len(m.Params) == 0 {
+		c.sendErrorAndClose(m.ID, "Mining address required")
+		return
+	}
+	user, ok := m.Params[0].(string)
+	if !ok {
+		c.sendErrorAndClose(m.ID, "Invalid mining address")
+		return
+	}
+	//TODO: validate the supplied address.rigname
+	c.User = user
+
+	err := c.Reply(m.ID, true, nil)
+	if err != nil {
+		c.Close()
+		return
+	}
 	c.SendDifficulty()
+}
+
+func (c *ClientConnection) sendErrorAndClose(ID uint64, errormessage string) {
+	c.Reply(ID, nil, []interface{}{errormessage})
+	c.Close()
 }
 
 //SendDifficulty sends the current difficulty to the miner
